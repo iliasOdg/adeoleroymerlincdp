@@ -23,7 +23,6 @@ public class EventServiceTest {
     @Test
     public void should_return_empty_result() {
         Mockito.when(eventRepository.findAllBy()).thenReturn(Collections.emptyList());
-        List<Event> expected = Collections.emptyList();
         List<Event> result = eventService.getFilteredEvents("query");
         assert result.isEmpty();
     }

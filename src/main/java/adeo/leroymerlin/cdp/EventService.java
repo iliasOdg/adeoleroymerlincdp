@@ -28,12 +28,15 @@ public class EventService {
 
     public List<Event> getFilteredEvents(String query) {
         List<Event> events = eventRepository.findAllBy();
-        String ignoreCase = query.toLowerCase();
         // Filter the events list in pure JAVA here
         return
                 events.stream()
-                        .filter(event -> this.filterByPredicat(event, ignoreCase))
-                        .map(this::countChildren)
+                        .filter(event -> event.getBands().stream()
+                                .anyMatch(band -> band.getMembers().stream()
+                                        .anyMatch(member -> member.getName().contains(query))
+                                )
+                        )
+                        .map(this::customFormat)
                         .collect(Collectors.toList());
     }
 
@@ -44,7 +47,7 @@ public class EventService {
      * @param event event to map
      * @return Event mapped event
      */
-    public Event countChildren(Event event) {
+    public Event customFormat(Event event) {
         String converted = String.join(" ", event.getTitle(), STR_FORMAT.replace("VALUE", String.valueOf(event.getBands().size())));
         event.setTitle(converted);
         Set<Band> bands = event.getBands().stream().peek(band -> {
@@ -53,21 +56,6 @@ public class EventService {
         }).collect(Collectors.toSet());
         event.setBands(bands);
         return event;
-    }
-
-    /**
-     * Nested filter by predicat for member which match query
-     *
-     * @param event event to filter
-     * @param query filter param
-     * @return true or false
-     */
-    public boolean filterByPredicat(Event event, String query) {
-        return event.getBands()
-                .stream().allMatch(
-                        brand -> brand.getMembers()
-                                .stream()
-                                .allMatch(member -> member.getName().contains(query)));
     }
 
     public void save(Event event) {
